@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>关于怪盗团 | Phantom Aficionado</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"Impact","Arial Black",sans-serif;letter-spacing:1px;}
+body{
+  background:#0a0a0a;
+  color:#fff;
+  background-image: radial-gradient(rgba(255,30,30,0.1) 1px, transparent 1px);
+  background-size:28px 28px;
+  min-height:100vh;
+}
+.nav{
+  border-bottom:3px solid #ff2222;
+  background:#080808;
+  padding:18px 20px;
+  position:sticky;
+  top:0;
+  z-index:99;
+}
+.nav-inner{
+  max-width:1000px;
+  margin:0 auto;
+  display:flex;
+  gap:30px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+.nav a{
+  color:#fff;
+  text-decoration:none;
+  font-size:18px;
+  transition:0.2s;
+}
+.nav a:hover{color:#ff2222;}
+.nav .logo{
+  color:#ff2222;
+  font-size:22px;
+  font-weight:bold;
+  margin-right:auto;
+}
+.user-box{
+  margin-left:auto;
+  color:#ff6666;
+  font-size:16px;
+}
+.user-box a{color:#ff6666;font-size:16px;}
+
+.container{
+  max-width:800px;
+  margin:50px auto;
+  padding:0 20px;
+}
+.card{
+  background:#141414;
+  padding:35px;
+  clip-path:polygon(0 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%);
+  border-left:5px solid #ff2222;
+  line-height:1.8;
+}
+.card h2{
+  color:#ff3333;
+  margin-bottom:25px;
+  padding-bottom:10px;
+  border-bottom:1px solid #333;
+  font-size:26px;
+}
+.card p{
+  margin-bottom:18px;
+  font-family:Arial,sans-serif;
+  letter-spacing:normal;
+  color:#ddd;
+  font-size:16px;
+}
+.quote{
+  border-left:3px solid #ff2222;
+  padding-left:18px;
+  margin:25px 0;
+  color:#ff6666;
+  font-style:italic;
+}
+
+.footer{
+  text-align:center;
+  padding:30px 20px;
+  color:#666;
+  font-size:14px;
+  border-top:1px solid #222;
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="nav-inner">
+    <div class="logo">PHANTOM</div>
+    <a href="index.html">首页</a>
+    <a href="request.html">提交请求</a>
+    <a href="ranking.html">目标排行榜</a>
+    <a href="message.html">留言墙</a>
+    <a href="about.html">关于怪盗团</a>
+    <div class="user-box" id="userBox">
+      <a href="login.html">登录 / 注册</a>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="card">
+    <h2>🎭 关于心之怪盗团</h2>
+    <p>我们是活跃于异世界的「心之怪盗团」，专门潜入腐败大人的内心殿堂，夺取他们扭曲的欲望，让其悔改并承认自己的罪行。</p>
+    <p>这个世界充满了不公与扭曲，有权势者肆意践踏弱者，却用光鲜的外表掩盖自己的恶行。</p>
+    
+    <div class="quote">
+      「我们是怪盗团，我们将纠正这个扭曲的世界。」
+    </div>
+    
+    <p><b>我们的宗旨：</b></p>
+    <p>• 不伤害任何人，只让恶人悔改<br>
+    • 纠正社会的扭曲与不公<br>
+    • 为无力反抗的人发声<br>
+    • 守护所有人的心灵</p>
+    
+    <p style="margin-top:30px;color:#888;font-size:14px;">
+      本站为自制网站，提供交流委托使用。<br>
+      免费委托©ATLUS ©SEGA
+    </p>
+  </div>
+</div>
+
+<div class="footer">
+  © Phantom Aficionado Fan Site · 接现实世界委托
+</div>
+
+<script>
+function checkLogin(){
+  const login = localStorage.getItem('phantom_login');
+  if(login){
+    const user = JSON.parse(login);
+    let adminTip = user.role === 'admin' ? ' <a href="admin.html" style="color:#ff2222;">管理后台</a> |' : '';
+    document.getElementById('userBox').innerHTML = 
+      `<span>${user.username}</span>${adminTip} | <a href="javascript:logout()" style="color:#ff6666;">退出</a>`;
+  }
+}
+function logout(){
+  localStorage.removeItem('phantom_login');
+  location.reload();
+}
+checkLogin();
+</script>
+
+</body>
+</html>

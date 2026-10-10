@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phantom Aficionado | 怪盗请求频道</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"Impact","Arial Black",sans-serif;letter-spacing:1px;}
+body{
+  background:#0a0a0a;
+  color:#fff;
+  background-image: radial-gradient(rgba(255,30,30,0.1) 1px, transparent 1px);
+  background-size:28px 28px;
+  min-height:100vh;
+}
+.nav{
+  border-bottom:3px solid #ff2222;
+  background:#080808;
+  padding:18px 20px;
+  position:sticky;
+  top:0;
+  z-index:99;
+}
+.nav-inner{
+  max-width:1000px;
+  margin:0 auto;
+  display:flex;
+  gap:30px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+.nav a{
+  color:#fff;
+  text-decoration:none;
+  font-size:18px;
+  transition:0.2s;
+}
+.nav a:hover{color:#ff2222;}
+.nav .logo{
+  color:#ff2222;
+  font-size:22px;
+  font-weight:bold;
+  margin-right:auto;
+}
+.user-box{
+  margin-left:auto;
+  color:#ff6666;
+  font-size:16px;
+}
+.user-box a{color:#ff6666;font-size:16px;}
+
+.header{
+  max-width:1000px;
+  margin:40px auto;
+  padding:0 20px;
+  text-align:center;
+}
+.main-title{
+  font-size:56px;
+  color:#ff2222;
+  text-shadow:0 0 12px rgba(255,30,30,0.6);
+  animation:flicker 2.5s infinite alternate;
+  margin-bottom:10px;
+}
+@keyframes flicker{
+  0%{opacity:0.85;}
+  100%{opacity:1;}
+}
+.sub-title{
+  color:#aaa;
+  font-size:18px;
+  letter-spacing:2px;
+}
+
+.container{
+  max-width:1000px;
+  margin:0 auto 60px;
+  padding:0 20px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:30px;
+}
+.card{
+  background:#141414;
+  padding:28px;
+  clip-path:polygon(0 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%);
+  border-left:5px solid #ff2222;
+}
+.card h2{
+  color:#ff3333;
+  margin-bottom:20px;
+  padding-bottom:10px;
+  border-bottom:1px solid #333;
+  font-size:24px;
+}
+.notice-item{
+  padding:14px 0;
+  border-bottom:1px dashed #2a2a2a;
+  line-height:1.6;
+}
+.notice-item:last-child{border-bottom:none;}
+.target-item{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 0;
+  border-bottom:1px dashed #2a2a2a;
+}
+.target-name{font-size:17px;}
+.target-rate{color:#ff4444;font-weight:bold;font-size:18px;}
+.more-btn{
+  display:inline-block;
+  margin-top:20px;
+  padding:10px 24px;
+  background:#ff2222;
+  color:#000;
+  text-decoration:none;
+  font-weight:bold;
+  transition:0.2s;
+}
+.more-btn:hover{background:#ff5555;}
+
+.footer{
+  text-align:center;
+  padding:30px 20px;
+  color:#666;
+  font-size:14px;
+  border-top:1px solid #222;
+}
+
+@media(max-width:768px){
+  .container{grid-template-columns:1fr;}
+  .main-title{font-size:38px;}
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="nav-inner">
+    <div class="logo">PHANTOM</div>
+    <a href="index.html">首页</a>
+    <a href="request.html">提交请求</a>
+    <a href="ranking.html">目标排行榜</a>
+    <a href="message.html">留言墙</a>
+    <a href="about.html">关于怪盗团</a>
+    <div class="user-box" id="userBox">
+      <a href="login.html">登录 / 注册</a>
+    </div>
+  </div>
+</div>
+
+<div class="header">
+  <h1 class="main-title">PHANTOM AFICIONADO</h1>
+  <p class="sub-title">怪 盗 请 求 频 道 · 怪 盗 CH</p>
+</div>
+
+<div class="container">
+  <div class="card">
+    <h2>📢 公 告 栏</h2>
+    <div class="notice-item">
+      <b>【重要】</b>请提交真实合理的诉求，恶意造谣、人身攻击内容将被删除。
+    </div>
+    <div class="notice-item">
+      <b>【怪盗团声明】</b>我们只夺取扭曲的欲望，纠正腐败的社会秩序。
+    </div>
+    <div class="notice-item">
+      <b>【更新】</b>目标投票与留言墙功能已上线，可前往对应页面参与。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🔥 热门目标 TOP3</h2>
+    <div id="topTarget"></div>
+    <a href="ranking.html" class="more-btn">查看完整排行榜 →</a>
+  </div>
+</div>
+
+<div class="footer">
+  © Phantom Aficionado Fan Site · 接现实世界委托
+</div>
+
+<script>
+// 登录状态检查
+function checkLogin(){
+   const login = localStorage.getItem('phantom_login');
+   if(login){
+     const user = JSON.parse(login);
+     let adminTip = user.role === 'admin' ? ' <a href="admin.html" style="color:#ff2222;">管理后台</a> |' : '';
+     document.getElementById('userBox').innerHTML = 
+       `<span>${user.username}</span>${adminTip} | <a href="javascript:logout()" style="color:#ff6666;">退出</a>`;
+   }
+ }
+ function logout(){
+   localStorage.removeItem('phantom_login');
+   location.reload();
+ }
+ checkLogin();
+ async function loadTopTarget(){
+   const res = await fetch('/api/rank').then(r=>r.json());
+   const list = res.list.slice(0,3);
+   const box = document.getElementById('topTarget');
+   box.innerHTML = '';
+   list.forEach((item,index)=>{
+     const rate = Math.round(item.yes/(item.yes+item.no)*100) || 0;
+     const div = document.createElement('div');
+     div.className = 'target-item';
+     div.innerHTML = `
+       <span class="target-name">${index+1}. ${item.name}</span>
+       <span class="target-rate">支持率 ${rate}%</span>
+     `;
+     box.appendChild(div);
+   });
+ }
+ loadTopTarget();

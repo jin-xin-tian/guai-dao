@@ -1,0 +1,315 @@
+  <!DOCTYPE html>
+ <html lang="zh-CN">
+ <head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>后台管理 | Phantom Aficionado</title>
+ <style>
+ *{margin:0;padding:0;box-sizing:border-box;font-family:"Impact","Arial Black",sans-serif;letter-spacing:1px;}
+ body{
+   background:#0a0a0a;
+   color:#fff;
+   background-image: radial-gradient(rgba(255,30,30,0.1) 1px, transparent 1px);
+   background-size:28px 28px;
+   min-height:100vh;
+ }
+ .nav{
+   border-bottom:3px solid #ff2222;
+   background:#080808;
+   padding:18px 20px;
+   position:sticky;
+   top:0;
+   z-index:99;
+ }
+ .nav-inner{
+   max-width:1000px;
+   margin:0 auto;
+   display:flex;
+   gap:30px;
+   align-items:center;
+   flex-wrap:wrap;
+ }
+ .nav a{
+   color:#fff;
+   text-decoration:none;
+   font-size:18px;
+   transition:0.2s;
+ }
+ .nav a:hover{color:#ff2222;}
+ .nav .logo{
+   color:#ff2222;
+   font-size:22px;
+   font-weight:bold;
+   margin-right:auto;
+ }
+ .user-box{
+   margin-left:auto;
+   color:#ff6666;
+   font-size:16px;
+ }
+ .user-box a{color:#ff6666;font-size:16px;}
+ .container{
+   max-width:900px;
+   margin:50px auto;
+   padding:0 20px;
+ }
+ .card{
+   background:#141414;
+   padding:30px;
+   clip-path:polygon(0 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%);
+   border-left:5px solid #ff2222;
+   margin-bottom:30px;
+ }
+ .card h2{
+   color:#ff3333;
+   margin-bottom:25px;
+   padding-bottom:10px;
+   border-bottom:1px solid #333;
+   font-size:24px;
+ }
+ .admin-tip{
+   background:#221010;
+   border:1px solid #ff4444;
+   padding:12px;
+   margin-bottom:20px;
+   color:#ff8888;
+   font-family:Arial,sans-serif;
+   letter-spacing:normal;
+ }
+ /* 目标管理 */
+ .target-item{
+   display:grid;
+   grid-template-columns:1fr 100px 80px 100px;
+   gap:15px;
+   align-items:center;
+   padding:12px 0;
+   border-bottom:1px dashed #2a2a2a;
+ }
+ .target-name{font-size:16px;}
+ .target-rate{color:#ff4444;text-align:center;}
+ .del-btn{
+   background:#aa0000;
+   border:none;
+   color:#fff;
+   padding:6px 12px;
+   cursor:pointer;
+   font-size:14px;
+ }
+ .add-row{
+   display:grid;
+   grid-template-columns:1fr 100px 100px;
+   gap:15px;
+   margin-top:15px;
+ }
+ .add-row input{
+   background:#1e1e1e;
+   border:1px solid #444;
+   color:#fff;
+   padding:8px;
+ }
+ .add-btn{
+   background:#ff2222;
+   border:none;
+   color:#000;
+   font-weight:bold;
+   cursor:pointer;
+ }
+ /* 留言&请求管理 */
+ .list-item{
+   padding:12px 0;
+   border-bottom:1px dashed #2a2a2a;
+   display:flex;
+   justify-content:space-between;
+   align-items:flex-start;
+   gap:15px;
+ }
+ .list-info{flex:1;}
+ .list-title{color:#ff4444;font-weight:bold;margin-bottom:4px;}
+ .list-text{color:#ddd;font-family:Arial,sans-serif;letter-spacing:normal;line-height:1.5;}
+ .list-meta{color:#888;font-size:12px;margin-top:6px;font-family:Arial,sans-serif;letter-spacing:normal;}
+ .footer{
+   text-align:center;
+   padding:30px 20px;
+   color:#666;
+   font-size:14px;
+   border-top:1px solid #222;
+ }
+ @media(max-width:768px){
+   .target-item{grid-template-columns:1fr 80px;}
+   .add-row{grid-template-columns:1fr;}
+ }
+ </style>
+ </head>
+ <body>
+ <div class="nav">
+   <div class="nav-inner">
+     <div class="logo">PHANTOM</div>
+     <a href="index.html">首页</a>
+     <a href="request.html">提交请求</a>
+     <a href="ranking.html">目标排行榜</a>
+     <a href="message.html">留言墙</a>
+     <a href="about.html">关于怪盗团</a>
+     <div class="user-box" id="userBox">
+       <a href="login.html">登录 / 注册</a>
+     </div>
+   </div>
+ </div>
+ <div class="container">
+   <div class="admin-tip">
+     ⚠️ 仅管理员可访问此页面，默认管理员账号：admin / 123456
+   </div>
+   <!-- 目标管理 -->
+   <div class="card">
+     <h2>🎯 排行榜目标管理</h2>
+     <div id="targetList"></div>
+     <div class="add-row">
+       <input type="text" id="newTargetName" placeholder="新目标名称">
+       <input type="number" id="newTargetYes" placeholder="初始支持数" value="0">
+       <button class="add-btn" onclick="addTarget()">添加</button>
+     </div>
+   </div>
+   <!-- 请求管理 -->
+   <div class="card">
+     <h2>📝 用户提交请求管理</h2>
+     <div id="requestList"></div>
+   </div>
+   <!-- 留言管理 -->
+   <div class="card">
+     <h2>💬 留言管理</h2>
+     <div id="msgList"></div>
+   </div>
+ </div>
+ <div class="footer">
+   © Phantom Aficionado Fan Site · 仅供个人娱乐，非官方作品
+ </div>
+ <script>
+ // 全局当前用户
+ let currentUser = null;
+ // 权限校验 + 登录状态显示
+ async function checkAuth(){
+   const login = localStorage.getItem('phantom_login');
+   if(!login){
+     alert('请先登录');
+     window.location.href = 'login.html';
+     return false;
+   }
+   currentUser = JSON.parse(login);
+   if(currentUser.role !== 'admin'){
+     alert('无管理员权限');
+     window.location.href = 'index.html';
+     return false;
+   }
+   document.getElementById('userBox').innerHTML = 
+     `<span>${currentUser.username} (管理员)</span> | <a href="javascript:logout()" style="color:#ff6666;">退出</a>`;
+   return true;
+ }
+ function logout(){
+   localStorage.removeItem('phantom_login');
+   window.location.href = 'login.html';
+ }
+ // ========== 目标管理 ==========
+ async function renderTargets(){
+   const res = await fetch('/api/rank').then(r=>r.json());
+   const list = res.list;
+   const box = document.getElementById('targetList');
+   box.innerHTML = '';
+   list.forEach(item=>{
+     const rate = Math.round(item.yes/(item.yes+item.no)*100) || 0;
+     const div = document.createElement('div');
+     div.className = 'target-item';
+     div.innerHTML = `
+       <span class="target-name">${item.name}</span>
+       <span class="target-rate">${rate}%</span>
+       <span style="color:#888;text-align:center;">${item.yes}/${item.no}</span>
+       <button class="del-btn" onclick="delTarget(${item.id})">删除</button>
+     `;
+     box.appendChild(div);
+   })
+ }
+ async function addTarget(){
+   const name = document.getElementById('newTargetName').value.trim();
+   const yes = parseInt(document.getElementById('newTargetYes').value) || 0;
+   if(!name){ alert('请输入目标名称'); return; }
+   
+   await fetch('/api/admin/addTarget', {
+     method: 'POST',
+     headers: {'Content-Type': 'application/json'},
+     body: JSON.stringify({ username: currentUser.username, name, yes })
+   }).then(r=>r.json());
+   
+   document.getElementById('newTargetName').value = '';
+   renderTargets();
+ }
+ async function delTarget(id){
+   if(!confirm('确定删除此目标？')) return;
+   await fetch('/api/admin/delTarget', {
+     method: 'POST',
+     headers: {'Content-Type': 'application/json'},
+     body: JSON.stringify({ username: currentUser.username, id })
+   }).then(r=>r.json());
+   renderTargets();
+ }
+ // ========== 请求管理 ==========
+ async function renderRequests(){
+   const res = await fetch('/api/admin/requests', {
+     method: 'POST',
+     headers: {'Content-Type': 'application/json'},
+     body: JSON.stringify({ username: currentUser.username })
+   }).then(r=>r.json());
+   
+   const list = res.list || [];
+   const box = document.getElementById('requestList');
+   if(list.length === 0){
+     box.innerHTML = '<p style="color:#666;padding:20px 0;">暂无用户提交的请求</p>';
+     return;
+   }
+   box.innerHTML = '';
+   list.forEach(item=>{
+     const div = document.createElement('div');
+     div.className = 'list-item';
+     div.innerHTML = `
+       <div class="list-info">
+         <div class="list-title">目标：${item.target}</div>
+         <div class="list-text">${item.detail}</div>
+         <div class="list-meta">提交者：${item.user} | 诉求：${item.wish} | ${item.time} | ${item.status}</div>
+       </div>
+       <button class="del-btn" onclick="delRequest(${item.id})">删除</button>
+     `;
+     box.appendChild(div);
+   })
+ }
+ async function delRequest(id){
+   if(!confirm('确定删除此请求？')) return;
+   await fetch('/api/admin/delRequest', {
+     method: 'POST',
+     headers: {'Content-Type': 'application/json'},
+     body: JSON.stringify({ username: currentUser.username, id })
+   }).then(r=>r.json());
+   renderRequests();
+ }
+ // ========== 留言管理 ==========
+ async function renderMsg(){
+   const res = await fetch('/api/messages').then(r=>r.json());
+   const list = res.list || [];
+   const box = document.getElementById('msgList');
+   if(list.length === 0){
+     box.innerHTML = '<p style="color:#666;padding:20px 0;">暂无留言</p>';
+     return;
+   }
+   box.innerHTML = '';
+   list.forEach(item=>{
+     const div = document.createElement('div');
+     div.className = 'list-item';
+     div.innerHTML = `
+       <div class="list-info">
+         <div class="list-title">${item.user}</div>
+         <div class="list-text">${item.content}</div>
+         <div class="list-meta">${item.time}</div>
+       </div>
+       <button class="del-btn" onclick="delMsg(${item.id})">删除</button>
+     `;
+     box.appendChild(div);
+   })
+ }
+ async function delMsg(id){
+   if(!confirm('确定删除

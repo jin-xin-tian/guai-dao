@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>留言墙 | Phantom Aficionado</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"Impact","Arial Black",sans-serif;letter-spacing:1px;}
+body{
+  background:#0a0a0a;
+  color:#fff;
+  background-image: radial-gradient(rgba(255,30,30,0.1) 1px, transparent 1px);
+  background-size:28px 28px;
+  min-height:100vh;
+}
+.nav{
+  border-bottom:3px solid #ff2222;
+  background:#080808;
+  padding:18px 20px;
+  position:sticky;
+  top:0;
+  z-index:99;
+}
+.nav-inner{
+  max-width:1000px;
+  margin:0 auto;
+  display:flex;
+  gap:30px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+.nav a{
+  color:#fff;
+  text-decoration:none;
+  font-size:18px;
+  transition:0.2s;
+}
+.nav a:hover{color:#ff2222;}
+.nav .logo{
+  color:#ff2222;
+  font-size:22px;
+  font-weight:bold;
+  margin-right:auto;
+}
+.user-box{
+  margin-left:auto;
+  color:#ff6666;
+  font-size:16px;
+}
+.user-box a{color:#ff6666;font-size:16px;}
+
+.container{
+  max-width:800px;
+  margin:50px auto;
+  padding:0 20px;
+}
+.card{
+  background:#141414;
+  padding:30px;
+  clip-path:polygon(0 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%);
+  border-left:5px solid #ff2222;
+  margin-bottom:30px;
+}
+.card h2{
+  color:#ff3333;
+  margin-bottom:25px;
+  padding-bottom:10px;
+  border-bottom:1px solid #333;
+  font-size:26px;
+}
+.form-group{
+  margin-bottom:20px;
+}
+label{
+  display:block;
+  margin-bottom:8px;
+  color:#ff6666;
+  font-size:16px;
+}
+textarea{
+  width:100%;
+  background:#1e1e1e;
+  border:1px solid #444;
+  color:#fff;
+  padding:12px;
+  font-size:16px;
+  min-height:100px;
+  resize:vertical;
+  font-family:Arial,sans-serif;
+  letter-spacing:normal;
+}
+.submit-btn{
+  background:#ff2222;
+  border:none;
+  color:#000;
+  padding:12px 30px;
+  font-size:18px;
+  font-weight:bold;
+  cursor:pointer;
+  transition:0.2s;
+}
+.submit-btn:hover{background:#ff5555;}
+
+.msg-list{
+  margin-top:10px;
+}
+.msg-item{
+  padding:18px 0;
+  border-bottom:1px dashed #2a2a2a;
+}
+.msg-head{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:8px;
+}
+.msg-user{color:#ff4444;font-weight:bold;}
+.msg-time{color:#777;font-size:14px;font-family:Arial,sans-serif;letter-spacing:normal;}
+.msg-content{
+  color:#ddd;
+  line-height:1.6;
+  font-family:Arial,sans-serif;
+  letter-spacing:normal;
+}
+.empty{
+  text-align:center;
+  color:#666;
+  padding:40px 0;
+}
+
+.footer{
+  text-align:center;
+  padding:30px 20px;
+  color:#666;
+  font-size:14px;
+  border-top:1px solid #222;
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="nav-inner">
+    <div class="logo">PHANTOM</div>
+    <a href="index.html">首页</a>
+    <a href="request.html">提交请求</a>
+    <a href="ranking.html">目标排行榜</a>
+    <a href="message.html">留言墙</a>
+    <a href="about.html">关于怪盗团</a>
+    <div class="user-box" id="userBox">
+      <a href="login.html">登录 / 注册</a>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="card">
+    <h2>💬 发布留言</h2>
+    <div class="form-group">
+      <label>留言内容</label>
+      <textarea id="msgContent" placeholder="写下你想对怪盗团说的话..."></textarea>
+    </div>
+    <button class="submit-btn" onclick="sendMsg()">发 布 留 言</button>
+    <p style="color:#888;margin-top:10px;font-size:14px;font-family:Arial,sans-serif;letter-spacing:normal;">
+      💡 登录后才能发布留言
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>📋 全部留言</h2>
+    <div class="msg-list" id="msgList"></div>
+  </div>
+</div>
+
+<div class="footer">
+  © Phantom Aficionado Fan Site · 接现实世界委托
+</div>
+
+<script>
+let currentUser = null;
+ function checkLogin(){
+   const login = localStorage.getItem('phantom_login');
+   if(login){
+     currentUser = JSON.parse(login);
+     let adminTip = currentUser.role === 'admin' ? ' <a href="admin.html" style="color:#ff2222;">管理后台</a> |' : '';
+     document.getElementById('userBox').innerHTML = 
+       `<span>${currentUser.username}</span>${adminTip} | <a href="javascript:logout()" style="color:#ff6666;">退出</a>`;
+   }
+ }
+ function logout(){
+   localStorage.removeItem('phantom_login');
+   location.reload();
+ }
+ checkLogin();
+ async function renderMsg(){
+   const res = await fetch('/api/messages').then(r=>r.json());
+   const list = res.list;
+   const box = document.getElementById('msgList');
+   if(list.length === 0){
+     box.innerHTML = '<div class="empty">暂无留言，快来发布第一条吧！</div>';
+     return;
+   }
+   box.innerHTML = '';
+   list.forEach(item=>{
+     const div = document.createElement('div');
+     div.className = 'msg-item';
+     div.innerHTML = `
+       <div class="msg-head">
+         <span class="msg-user">${item.user}</span>
+         <span class="msg-time">${item.time}</span>
+       </div>
+       <div class="msg-content">${item.content}</div>
+     `;
+     box.appendChild(div);
+   })
+ }
+ async function sendMsg(){
+   if(!currentUser){
+     alert('请先登录后再发布留言');
+     window.location.href = 'login.html';
+     return;
+   }
+   const content = document.getElementById('msgContent').value.trim();
+   if(!content){ alert('请输入留言内容'); return; }
+   
+   const now = new Date();
+   const time = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+   
+   await fetch('/api/messages', {
+     method: 'POST',
+     headers: {'Content-Type': 'application/json'},
+     body: JSON.stringify({ user: currentUser.username, content, time })
+   }).then(r=>r.json());
+   
+   document.getElementById('msgContent').value = '';
+   renderMsg();
+   alert('留言发布成功！');
+ }
+ renderMsg();
+function renderMsg(){
+  const list = ge

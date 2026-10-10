@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>提交请求 | Phantom Aficionado</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"Impact","Arial Black",sans-serif;letter-spacing:1px;}
+body{
+  background:#0a0a0a;
+  color:#fff;
+  background-image: radial-gradient(rgba(255,30,30,0.1) 1px, transparent 1px);
+  background-size:28px 28px;
+  min-height:100vh;
+}
+.nav{
+  border-bottom:3px solid #ff2222;
+  background:#080808;
+  padding:18px 20px;
+  position:sticky;
+  top:0;
+  z-index:99;
+}
+.nav-inner{
+  max-width:1000px;
+  margin:0 auto;
+  display:flex;
+  gap:30px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+.nav a{
+  color:#fff;
+  text-decoration:none;
+  font-size:18px;
+  transition:0.2s;
+}
+.nav a:hover{color:#ff2222;}
+.nav .logo{
+  color:#ff2222;
+  font-size:22px;
+  font-weight:bold;
+  margin-right:auto;
+}
+.user-box{
+  margin-left:auto;
+  color:#ff6666;
+  font-size:16px;
+}
+.user-box a{color:#ff6666;font-size:16px;}
+
+.container{
+  max-width:800px;
+  margin:50px auto;
+  padding:0 20px;
+}
+.card{
+  background:#141414;
+  padding:35px;
+  clip-path:polygon(0 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%);
+  border-left:5px solid #ff2222;
+}
+.card h2{
+  color:#ff3333;
+  margin-bottom:30px;
+  padding-bottom:10px;
+  border-bottom:1px solid #333;
+  font-size:26px;
+}
+.form-group{
+  margin-bottom:25px;
+}
+label{
+  display:block;
+  margin-bottom:10px;
+  color:#ff6666;
+  font-size:17px;
+}
+input, textarea{
+  width:100%;
+  background:#1e1e1e;
+  border:1px solid #444;
+  color:#fff;
+  padding:14px;
+  font-size:16px;
+  font-family:Arial,sans-serif;
+  letter-spacing:normal;
+}
+textarea{
+  min-height:180px;
+  resize:vertical;
+}
+.submit-btn{
+  background:#ff2222;
+  border:none;
+  color:#000;
+  padding:14px 40px;
+  font-size:20px;
+  font-weight:bold;
+  cursor:pointer;
+  transition:0.2s;
+}
+.submit-btn:hover{background:#ff5555;}
+.submit-btn:disabled{
+  background:#555;
+  cursor:not-allowed;
+}
+
+.footer{
+  text-align:center;
+  padding:30px 20px;
+  color:#666;
+  font-size:14px;
+  border-top:1px solid #222;
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="nav-inner">
+    <div class="logo">PHANTOM</div>
+    <a href="index.html">首页</a>
+    <a href="request.html">提交请求</a>
+    <a href="ranking.html">目标排行榜</a>
+    <a href="message.html">留言墙</a>
+    <a href="about.html">关于怪盗团</a>
+    <div class="user-box" id="userBox">
+      <a href="login.html">登录 / 注册</a>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="card">
+    <h2>📝 提交你的求助请求</h2>
+    <form id="requestForm">
+      <div class="form-group">
+        <label>目标对象</label>
+        <input type="text" id="target" placeholder="填写你希望曝光的目标名称" required>
+      </div>
+      <div class="form-group">
+        <label>事件详情</label>
+        <textarea id="detail" placeholder="详细描述对方的所作所为、扭曲的欲望..." required></textarea>
+      </div>
+      <div class="form-group">
+        <label>你的诉求</label>
+        <input type="text" id="wish" placeholder="你希望怪盗团如何处理？" required>
+      </div>
+      <button type="submit" class="submit-btn" id="submitBtn">发 送 请 求</button>
+      <p style="color:#888;margin-top:15px;font-size:14px;font-family:Arial,sans-serif;letter-spacing:normal;">
+        💡 登录后才能提交，未登录将自动跳转
+      </p>
+    </form>
+  </div>
+</div>
+
+<div class="footer">
+  © Phantom Aficionado Fan Site · 接现实世界委托
+</div>
+
+<script>
+let currentUser = null;
+ function checkLogin(){
+   const login = localStorage.getItem('phantom_login');
+   if(login){
+     currentUser = JSON.parse(login);
+     let adminTip = currentUser.role === 'admin' ? ' <a href="admin.html" style="color:#ff2222;">管理后台</a> |' : '';
+     document.getElementById('userBox').innerHTML = 
+       `<span>${currentUser.username}</span>${adminTip} | <a href="javascript:logout()" style="color:#ff6666;">退出</a>`;
+   }
+ }
+ function logout(){
+   localStorage.removeItem('phantom_login');
+   location.reload();
+ }
+ checkLogin();
+ document.getElementById('requestForm').addEventListener('submit',async function(e){
+   e.preventDefault();
+   if(!currentUser){
+     alert('请先登录后再提交请求');
+     window.location.href = 'login.html';
+     return;
+   }
+   
+   const target = document.getElementById('target').value.trim();
+   const detail = document.getElementById('detail').value.trim();
+   const wish = document.getElementById('wish').value.trim();
+   
+   const now = new Date();
+   const time = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+   
+   await fetch('/api/requests', {
+     method: 'POST',
+     headers: {'Content-Type': 'application/json'},
+     body: JSON.stringify({ user: currentUser.username, target, detail, wish, time })
+   }).then(r=>r.json());
+   
+   alert('✅ 请求已发送至怪盗频道！\n\n你的诉求已被记录，怪盗团将进行评估。');
+   this.reset();
+ })

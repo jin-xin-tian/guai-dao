@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>目标排行榜 | Phantom Aficionado</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"Impact","Arial Black",sans-serif;letter-spacing:1px;}
+body{
+  background:#0a0a0a;
+  color:#fff;
+  background-image: radial-gradient(rgba(255,30,30,0.1) 1px, transparent 1px);
+  background-size:28px 28px;
+  min-height:100vh;
+}
+.nav{
+  border-bottom:3px solid #ff2222;
+  background:#080808;
+  padding:18px 20px;
+  position:sticky;
+  top:0;
+  z-index:99;
+}
+.nav-inner{
+  max-width:1000px;
+  margin:0 auto;
+  display:flex;
+  gap:30px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+.nav a{
+  color:#fff;
+  text-decoration:none;
+  font-size:18px;
+  transition:0.2s;
+}
+.nav a:hover{color:#ff2222;}
+.nav .logo{
+  color:#ff2222;
+  font-size:22px;
+  font-weight:bold;
+  margin-right:auto;
+}
+.user-box{
+  margin-left:auto;
+  color:#ff6666;
+  font-size:16px;
+}
+.user-box a{color:#ff6666;font-size:16px;}
+
+.container{
+  max-width:900px;
+  margin:50px auto;
+  padding:0 20px;
+}
+.card{
+  background:#141414;
+  padding:30px;
+  clip-path:polygon(0 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%);
+  border-left:5px solid #ff2222;
+}
+.card h2{
+  color:#ff3333;
+  margin-bottom:25px;
+  padding-bottom:10px;
+  border-bottom:1px solid #333;
+  font-size:26px;
+}
+
+.rank-item{
+  display:grid;
+  grid-template-columns:60px 1fr 120px 180px;
+  align-items:center;
+  padding:18px 0;
+  border-bottom:1px dashed #2a2a2a;
+  gap:15px;
+}
+.rank-num{
+  color:#ff2222;
+  font-size:24px;
+  font-weight:bold;
+}
+.rank-name{font-size:18px;}
+.rank-percent{
+  color:#ff4444;
+  font-size:20px;
+  font-weight:bold;
+  text-align:right;
+}
+.vote-btns{
+  display:flex;
+  gap:8px;
+}
+.vote-btn{
+  flex:1;
+  padding:8px 0;
+  border:none;
+  cursor:pointer;
+  font-weight:bold;
+  transition:0.2s;
+}
+.vote-yes{background:#ff2222;color:#000;}
+.vote-no{background:#333;color:#aaa;}
+.vote-btn:hover{opacity:0.8;}
+.vote-btn:disabled{opacity:0.5;cursor:not-allowed;}
+
+.tip{
+  margin-top:20px;
+  color:#888;
+  font-size:14px;
+  text-align:center;
+  font-family:Arial,sans-serif;
+  letter-spacing:normal;
+}
+
+.footer{
+  text-align:center;
+  padding:30px 20px;
+  color:#666;
+  font-size:14px;
+  border-top:1px solid #222;
+}
+
+@media(max-width:768px){
+  .rank-item{
+    grid-template-columns:40px 1fr;
+    grid-template-rows:auto auto;
+  }
+  .rank-percent{grid-column:2;text-align:left;}
+  .vote-btns{grid-column:1 / -1;}
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="nav-inner">
+    <div class="logo">PHANTOM</div>
+    <a href="index.html">首页</a>
+    <a href="request.html">提交请求</a>
+    <a href="ranking.html">目标排行榜</a>
+    <a href="message.html">留言墙</a>
+    <a href="about.html">关于怪盗团</a>
+    <div class="user-box" id="userBox">
+      <a href="login.html">登录 / 注册</a>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="card">
+    <h2>🏆 目标支持率排行榜</h2>
+    <div id="rankList"></div>
+    <p class="tip">💡 登录后可投票，每人每个目标限投一次，结果实时更新</p>
+  </div>
+</div>
+
+<div class="footer">
+  © Phantom Aficionado Fan Site · 接现实世界委托
+</div>
+
+<script>
+let currentUser = null;
+function checkLogin(){
+  const login = localStorage.getItem('phantom_login');
+  if(login){
+    currentUser = JSON.parse(login);
+    let adminTip = currentUser.role === 'admin' ? ' <a href="admin.html" style="color:#ff2222;">管理后台</a> |' : '';
+    document.getElementById('userBox').innerHTML = 
+      `<span>${currentUser.username}</span>${adminTip} | <a href="javascript:logout()" style="color:#ff6666;">退出</a>`;
+  }
+}
+function logout(){
+  localStorage.removeItem('phantom_login');
+  location.reload();
+}
+checkLogin();
+
+// 渲染列表
+async function renderList(){
+  const res = await fetch('/api/rank').then(r=>r.json());
+  const list = res.list;
+  
+  const container = document.getElementById('rankList');
+  container.innerHTML = '';
+  
+  list.forEach((item, index)=>{
+    const rate = Math.round(item.yes / (item.yes + item.no) * 100) || 0;
+    const div = document.createElement('div');
+    div.className = 'rank-item';
+    div.innerHTML = `
+      <div class="rank-num">${index+1}</div>
+      <div class="rank-name">${item.name}</div>
+      <div class="rank-percent">${rate}%</div>
+      <div class="vote-btns">
+        <button class="vote-btn vote-yes" data-id="${item.id}" data-type="yes">支 持</button>
+        <button class="vote-btn vote-no" data-id="${item.id}" data-type="no">反 对</button>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+  
+  document.querySelectorAll('.vote-btn').forEach(btn=>{
+    btn.addEventListener('click', function(){
+      if(!currentUser){
+        alert('请先登录后再投票');
+        window.location.href = 'login.html';
+        return;
+      }
+      const id = parseInt(this.dataset.id);
+      const type = this.dataset.type;
+      vote(id, type);
+    });
+  });
+}
+
+async function vote(id, type){
+  const res = await fetch('/api/vote', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ username: currentUser.username, targetId: id, type })
+  }).then(r=>r.json());
+  
+  if(res.success){
+    renderList();
+  } else {
+    alert(res.msg);
+  }
+}
+
+renderList();
+function renderList(){
+  const list = loadData();
